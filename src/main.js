@@ -327,44 +327,52 @@ function animate() {
 
   if (hoveredName !== "Sun" && clickedPlanet !== "Sun") sun.rotateY(0.004);
   if (hoveredName !== "Mercury" && clickedPlanet !== "Mercury") {
-    mercury.mesh.rotateY(0.004);
     mercury.obj.rotateY(0.03);
   }
   if (hoveredName !== "Venus" && clickedPlanet !== "Venus") {
-    venus.mesh.rotateY(0.002);
     venus.obj.rotateY(0.015);
   }
-  if (hoveredName !== "Earth" && clickedPlanet !== "Earth" && hoveredName !== "Moon" && clickedPlanet !== "Moon") {
-    earth.mesh.rotateY(0.02);
+  if (
+    hoveredName !== "Earth" &&
+    clickedPlanet !== "Earth" &&
+    hoveredName !== "Moon" &&
+    clickedPlanet !== "Moon"
+  ) {
     earth.obj.rotateY(0.009);
   }
   if (hoveredName !== "Mars" && clickedPlanet !== "Mars") {
-    mars.mesh.rotateY(0.018);
     mars.obj.rotateY(0.008);
   }
   if (hoveredName !== "Jupiter" && clickedPlanet !== "Jupiter") {
-    jupiter.mesh.rotateY(0.04);
     jupiter.obj.rotateY(0.002);
   }
   if (hoveredName !== "Saturn" && clickedPlanet !== "Saturn") {
-    saturn.mesh.rotateY(0.038);
     saturn.obj.rotateY(0.0009);
   }
   if (hoveredName !== "Uranus" && clickedPlanet !== "Uranus") {
-    uranus.mesh.rotateY(0.03);
     uranus.obj.rotateY(0.0004);
   }
   if (hoveredName !== "Neptune" && clickedPlanet !== "Neptune") {
-    neptune.mesh.rotateY(0.032);
     neptune.obj.rotateY(0.0001);
   }
 
-  moon.rotateY(0.01);
-  if (hoveredName !== "Moon" && clickedPlanet !== "Moon")
+  if (hoveredName !== "Moon" && clickedPlanet !== "Moon") {
     moonObj.rotateY(0.003);
+  }
+
+  venus.mesh.rotateY(0.002);
+  mercury.mesh.rotateY(0.004);
+  earth.mesh.rotateY(0.02);
+  mars.mesh.rotateY(0.018);
+  jupiter.mesh.rotateY(0.04);
+  saturn.mesh.rotateY(0.038);
+  uranus.mesh.rotateY(0.03);
+  neptune.mesh.rotateY(0.032);
+  moon.rotateY(0.01);
 
   renderer.render(scene, camera);
 }
+
 
 function createOrbitRing(radius, name) {
   const orbitGeo = new THREE.RingGeometry(radius, radius + 0.3, 128);
