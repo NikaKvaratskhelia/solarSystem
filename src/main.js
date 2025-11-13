@@ -9,19 +9,39 @@ import earthTexture from "./assets/earthmap1k.jpg";
 import marsTexture from "./assets/marsmap1k.jpg";
 import jupiterTexture from "./assets/jupitermap.jpg";
 import saturnTexture from "./assets/saturnmap.jpg";
-import saturnRingTexture from "./assets/saturnringcolor.jpg";
+import saturnRingTexture from "./assets/saturnringcolor.webp";
 import uranusTexture from "./assets/uranusmap.jpg";
-import uranusRingTexture from "./assets/uranusringcolour.jpg";
+import uranusRingTexture from "./assets/uranusringcolour.png";
 import neptuneTexture from "./assets/neptunemap.jpg";
 import moonTexture from "./assets/moon.webp";
-import { plane } from "three/examples/jsm/Addons.js";
 
 // Global variables
 let orbitRings = [];
 let planets = [];
 let hoveredPlanet = null;
 let clickedPlanet = null;
-let h1 = document.querySelector("h1");
+const div = document.createElement("div");
+div.classList.add("container");
+document.querySelector("body").appendChild(div);
+
+const planetsInfo = {
+  sun: "The Sun is a gigantic sphere of burning plasma — the powerhouse of our solar system. It makes up more than 99% of all its mass and fuels everything with its energy. Nuclear fusion in its core turns hydrogen into helium, releasing unimaginable heat and light that reach every planet.",
+  mercury:
+    "Mercury is the closest planet to the Sun and the smallest of them all. Days here can roast metal — over 430°C, while nights freeze below -180°C. It has no atmosphere to hold heat, and its cratered surface tells a story of billions of years of bombardment by space rocks.",
+  venus:
+    "Venus is the hottest planet in the solar system — even hotter than Mercury — thanks to its thick carbon dioxide atmosphere that traps heat like an oven. Its yellow clouds of sulfuric acid hide a world of crushing pressure and toxic air. Yet beneath the chaos, it's Earth's closest twin in size and structure.",
+  earth:
+    "Our home. The only known planet where life thrives. About 70% of its surface is covered by oceans, and its breathable atmosphere makes it uniquely habitable. Earth's magnetic field protects it from solar radiation, and its perfect distance from the Sun keeps conditions stable for life to evolve.",
+  mars: "Known as the Red Planet, Mars is cold, dry, and dusty, but shows signs that it once had rivers and lakes. Its thin atmosphere is mostly carbon dioxide, and winds create massive dust storms. Mars' two tiny moons, Phobos and Deimos, orbit a world that might one day host human colonies.",
+  jupiter:
+    "The largest planet, a gas giant more than 1,300 times the size of Earth. It has no solid surface — just swirling layers of hydrogen and helium. Its Great Red Spot is a massive storm that's been raging for centuries. Jupiter's dozens of moons, including Ganymede and Europa, are worlds of their own.",
+  saturn:
+    "Famous for its stunning rings made of ice and rock. Saturn is a massive gas giant with powerful winds and low density — it could float in water if you had a big enough ocean. Its moon Titan has lakes of methane, making it one of the most intriguing bodies in the solar system.",
+  uranus:
+    "An ice giant that rotates on its side, likely due to a massive collision in its past. Its blue-green color comes from methane in its atmosphere. Cold, windy, and distant, Uranus completes one orbit around the Sun every 84 Earth years.",
+  neptune:
+    "The farthest known planet. Deep blue and violent, Neptune has winds faster than any in the solar system, reaching over 2,000 km/h. It's an ice giant rich in methane and water vapor, orbiting in the cold darkness at the edge of the Sun's reach.",
+};
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -31,8 +51,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.set(20, 20);
-camera.position.setZ(50);
+camera.position.set(20, 70, 100);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.physicallyCorrectLights = true;
@@ -61,6 +80,9 @@ sunLight.castShadow = true;
 scene.add(sunLight);
 const lightHelper = new THREE.PointLightHelper(sunLight);
 scene.add(lightHelper);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+scene.add(ambientLight);
 
 // Starfield background
 const starGeometry = new THREE.BufferGeometry();
@@ -243,6 +265,8 @@ clickable.forEach((obj) => {
   console.log("Clickable object:", obj.name, obj.geometry.type);
 });
 
+console.log(clickable);
+
 // Click event
 window.addEventListener("click", (event) => {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -251,36 +275,44 @@ window.addEventListener("click", (event) => {
   raycaster.setFromCamera(mouse, camera);
 
   const intersects = raycaster.intersectObjects(clickable, true);
+  const worldPos = new THREE.Vector3();
 
-  if (intersects.length > 0) {
-    let clicked = intersects[0].object;
-    console.log(clicked);
-    
+  if (intersects.length === 0) return;
 
-    const planet = planets.find(
-      (p) =>
-        p.mesh.name === clicked.name ||
-        orbitRings.some((r) => r.name === p.mesh.name && r === clicked)
-    );
+  const clicked = intersects[0].object;
 
-    if (!planet) return;
+  const planet = planets.find(
+    (p) =>
+      p.mesh.name === clicked.name ||
+      orbitRings.some((r) => r.name === p.mesh.name && r === clicked)
+  );
 
-    const worldPos = new THREE.Vector3();
-    planet.mesh.getWorldPosition(worldPos);
-    h1.innerHTML = planet.mesh.name;
+  if (!planet || planet.mesh.name === "Moon") return;
 
-    clickedPlanet = planet.mesh.name;
+  planet.mesh.getWorldPosition(worldPos);
 
-    camera.position.set(worldPos.x + 20, worldPos.y + 20, worldPos.z + 20);
+  clickedPlanet = planet.mesh.name;
+
+  div.innerHTML = `
+    <h1 id="planetName">${planet.mesh.name}</h1>
+    <p>${planetsInfo[planet.mesh.name.toLowerCase()]}</p>
+    <button id="resetBtn">Reset View</button>
+  `;
+
+  camera.position.set(worldPos.x + 20, worldPos.y + 20, worldPos.z + 20);
+  controls.target.copy(worldPos);
+  controls.update();
+
+  const resetBtn = document.getElementById("resetBtn");
+  resetBtn.onclick = () => {
+    clickedPlanet = null;
+    div.innerHTML = "";
+
+    sun.getWorldPosition(worldPos);
     controls.target.copy(worldPos);
     controls.update();
-
-    console.log("Clicked:", planet.mesh.name);
-  } else {
-    clickedPlanet = null;
-    h1.innerHTML = "";
-    console.log("Clicked outside, reset clickedPlanet");
-  }
+    camera.position.set(20, 70, 100);
+  };
 });
 
 // Hover event
@@ -373,7 +405,6 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-
 function createOrbitRing(radius, name) {
   const orbitGeo = new THREE.RingGeometry(radius, radius + 0.3, 128);
   const orbitMat = new THREE.MeshBasicMaterial({
@@ -412,7 +443,7 @@ function createPlanet(size, texture, position, ring, initialAngle = 0, name) {
 
   if (ring) {
     const ringGeo = new THREE.RingGeometry(
-      ring.ringInnersize,
+      ring.ringInnersize + 1,
       ring.ringOutersize,
       32
     );
@@ -422,31 +453,11 @@ function createPlanet(size, texture, position, ring, initialAngle = 0, name) {
     });
     const ringMesh = new THREE.Mesh(ringGeo, ringMat);
     ringMesh.position.x = position;
-    ringMesh.rotation.x = -0.5 * Math.PI;
+    ringMesh.rotation.x = Math.PI / 2;
     obj.add(ringMesh);
   }
 
   scene.add(obj);
   planets.push({ mesh, obj });
   return { mesh, obj };
-}
-
-function moveCameraTo(targetPosition, targetLookAt) {
-  const duration = 1.5; // seconds
-  const startPos = camera.position.clone();
-  const startTarget = controls.target.clone();
-  let elapsed = 0;
-
-  function animateCamera(delta) {
-    elapsed += delta;
-    const t = Math.min(elapsed / duration, 1);
-
-    camera.position.lerpVectors(startPos, targetPosition, t);
-    controls.target.lerpVectors(startTarget, targetLookAt, t);
-    controls.update();
-
-    if (t < 1) requestAnimationFrame((ts) => animateCamera(ts / 1000));
-  }
-
-  animateCamera(0);
 }
